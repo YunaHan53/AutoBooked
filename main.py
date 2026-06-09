@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as Ec
 import os
 from dotenv import load_dotenv
-from datetime import datetime
 
 load_dotenv()
 
@@ -55,35 +54,21 @@ wait.until(Ec.presence_of_element_located((By.ID, "schedule-page")))
 # ----------------  Step 3 - Book a Class: Boot Upcoming Tuesday Class ----------------
 
 # Find a class for Tuesday at 6pm
-day_group_search = driver.find_elements(By.CSS_SELECTOR, "div[id^='day-group-']")
-for day_group in day_group_search:
-    day_date = day_group.text.split("\n")[0]
-    # Check if it is a Tuesday
-    if "Tue" in day_date:
-        # Get the date and current year
-        date = day_date.split(",")[1].strip()
-        current_year = datetime.now().year
-        date_year = f"{date} {current_year}"
+class_cards = driver.find_elements(By.CSS_SELECTOR, "div[id^='class-card-']")
+for card in class_cards:
+    day_group = card.find_element(By.XPATH, "./ancestor::div[contains(@id, 'day-group-')]")
+    day_title = day_group.find_element(By.TAG_NAME, "h2").text
+    if "Tue" in day_title:
+        class_time = card.find_element(By.CSS_SELECTOR, "p[id^='class-time-']")
+        if "6:00 PM" in class_time.text:
+            # Get the class name
+            class_name = card.find_element(By.CSS_SELECTOR, "h3[id^='class-name-']").text
+            # Find the button
+            button = card.find_element(By.TAG_NAME, "button")
+            print(button.text)
 
-        # Format the date with the current year
-        formatted_date = datetime.strptime(date_year, "%b %d %Y").strftime("%Y-%m-%d")
-        # Check for a 6:00 pm class
-        times_on_date = driver.find_elements(By.CSS_SELECTOR, f"div[id^='class-card-'][id*='{formatted_date}']")
+            print(f"✓ Booked: {class_name} on {class_time.text}")
 
-        for times in times_on_date:
-            if "Time: 6:00 PM" in times.text:
-                # Get the class name
-                class_name = times.text.split("\n")[0]
 
-                # Find the time text and format it
-                timeline = times.text.split("\n")[1]
-                time = f"{timeline.split(" ")[1].strip()} {timeline.split(" ")[2].strip()}"
-                formatted_time = datetime.strptime(time, "%I:%M %p").strftime("%H%M")
-                # Find a click the book OR join waitlist button
-                date_time = f"{formatted_date}-{formatted_time}"
-                book_button = driver.find_element(By.CSS_SELECTOR, f"button[id^='book-button'][id$='{date_time}']")
-                book_button.click()
-
-                print(f"✓ Booked: {class_name} on {date_year}")
 
 # driver.close()
