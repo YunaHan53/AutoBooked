@@ -72,13 +72,17 @@ for card in class_cards:
             # Check if a class is already booked (button reads "Booked")
             button_status = card.find_element(By.CSS_SELECTOR, "button[id^='book-button-']")
             if button_status.text == "Booked":
-                print(f"✓ Already booked: {class_name} on {class_time.text}")
+                print(f"✓ Already booked: {class_name} on {day_title}")
             # Check if you're on the waitlist (button reads "Waitlisted")
             elif button_status.text == "Waitlisted":
-                print(f"✓ Already on waitlist: {class_name} on {class_time.text}")
+                print(f"✓ Already on waitlist: {class_name} on {day_title}")
             # Join the waitlist if the class is full (button says "Join Waitlist")
+            elif button_status.text == "Book Class":
+                button.click()
+                print(f"✓ Successfully booked: {class_name} on {day_title}")
             elif button_status.text == "Join Waitlist":
                 button.click()
-                print(f"✓ Joined waitlist for: {class_name} on {class_time.text}")
+                print(f"✓ Joined waitlist for: {class_name} on {day_title}")
+            break
 
 # driver.close()
