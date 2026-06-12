@@ -52,19 +52,23 @@ submit_button.click()
 # Wait for Schedule Page to load
 wait.until(Ec.presence_of_element_located((By.ID, "schedule-page")))
 
-# Statistics Summary counters
+# Statistics Summary - Counters
 booked_count = 0
 waitlisted_count = 0
 already_booked_waitlisted_count = 0
 
-# ----------------  Step 3 - Book a Class: Boot Upcoming Tuesday Class ----------------
+# Class Lists
+booked_list = []
+waitlisted_list = []
 
-# Find a class for Tuesday at 6pm
+# ----------------  Step 3 - Book ALL Tuesday AND Thursday 6pm Classes ----------------
+
+# Find a class for Tuesday or Thursday at 6pm
 class_cards = driver.find_elements(By.CSS_SELECTOR, "div[id^='class-card-']")
 for card in class_cards:
     day_group = card.find_element(By.XPATH, "./ancestor::div[contains(@id, 'day-group-')]")
     day_title = day_group.find_element(By.TAG_NAME, "h2").text
-    if "Tue" in day_title:
+    if "Tue" in day_title or "Thu" in day_title:
         class_time = card.find_element(By.CSS_SELECTOR, "p[id^='class-time-']").text
         class_time_formatted = f"{class_time.split(" ")[1]} {class_time.split(" ")[2]}"
         if "6:00 PM" in class_time:
@@ -80,37 +84,44 @@ for card in class_cards:
             button_status = card.find_element(By.CSS_SELECTOR, "button[id^='book-button-']")
             if button_status.text == "Booked":
                 already_booked_waitlisted_count += 1
-                print(f"✓ Already booked: {class_name} on {day_title} at {class_time_formatted}")
+                booked_class = f"{class_name} on {day_title} at {class_time_formatted}"
+                print(f"✓ Already booked: {booked_class}")
             # Check if you're on the waitlist (button reads "Waitlisted")
             elif button_status.text == "Waitlisted":
                 already_booked_waitlisted_count += 1
-                print(f"✓ Already on waitlist: {class_name} on {day_title} at {class_time_formatted}")
+                waitlisted_class = f"{class_name} on {day_title} at {class_time_formatted}"
+                print(f"✓ Already on waitlist: {waitlisted_class}")
             # Join the waitlist if the class is full (button says "Join Waitlist")
             elif button_status.text == "Book Class":
                 button.click()
                 booked_count += 1
-                print(f"✓ Successfully booked: {class_name} on {day_title} at {class_time_formatted}")
+                booked_class = f"{class_name} on {day_title} at {class_time_formatted}"
+                booked_list.append(booked_class)
+                print(f"✓ Successfully booked: {booked_class}")
                 time.sleep(0.5)
             elif button_status.text == "Join Waitlist":
                 button.click()
                 waitlisted_count += 1
-                print(f"✓ Joined waitlist for: {class_name} on {day_title} at {class_time_formatted}")
+                waitlisted_class = f"{class_name} on {day_title} at {class_time_formatted}"
+                waitlisted_list.append(waitlisted_class)
+                print(f"✓ Joined waitlist for: {waitlisted_class}")
                 time.sleep(0.5)
-            break
 
-# ----------------  Step 5 - Print out a booking summary ----------------
+# ----------------  Step 5 - Print Booking Summary ----------------
 
-print(f"--- BOOKING SUMMARY --- \n"
-      f"Classes booked: {booked_count} \n"
-      f"Waitlists joined: {waitlisted_count} \n"
+print(f"\n--- BOOKING SUMMARY --- \n"
+      f"New bookings: {booked_count} \n"
+      f"New waitlists: {waitlisted_count} \n"
       f"Already booked/waitlisted: {already_booked_waitlisted_count} \n"
-      f"Total Tuesday 6pm classes processed: {booked_count + waitlisted_count + already_booked_waitlisted_count} \n ")
+      f"Total Tuesday & Thursday 6pm classes: {booked_count + waitlisted_count + already_booked_waitlisted_count} \n ")
 
-# --- BOOKING SUMMARY ---
-# Classes booked: 0
-# Waitlists joined: 0
-# Already booked/waitlisted: 1
-# Total Tuesday 6pm classes processed: 1
+# ----------------  Step 6 - Print Detailed Class List ----------------
+
+print("--- DETAILED CLASS LIST ---")
+for booked_class in booked_list:
+    print(f"[New Booking] {booked_class}")
+for waitlisted_class in waitlisted_list:
+    print(f"[New Waitlist] {waitlisted_class} \n")
 
 
 # driver.close()
